@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MoveServiceApplication {
+public class MovieServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(MoveServiceApplication.class, args);
+        SpringApplication.run(MovieServiceApplication.class, args);
     }
 
 }

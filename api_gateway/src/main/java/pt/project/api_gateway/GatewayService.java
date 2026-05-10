@@ -16,7 +16,7 @@ public class GatewayService {
     public String search(String query) {
 
         String url = UriComponentsBuilder
-                .fromUriString("http://localhost:8081/movie/search")
+                .fromUriString("http://localhost:8080/movie/search")
                 .queryParam("query", query)
                 .toUriString();
 

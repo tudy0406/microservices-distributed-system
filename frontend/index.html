@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Request App</title>
+</head>
+<body>
+
+    <input type="text" id="userInput" placeholder="Enter something">
+    <button id="sendBtn">Send</button>
+
+    <p id="message"></p>
+
+    <script>
+        const button = document.getElementById("sendBtn");
+        const input = document.getElementById("userInput");
+        const message = document.getElementById("message");
+
+        button.addEventListener("click", async () => {
+            const query = input.value;
+
+            try {
+
+                const response = await fetch(
+                    `http://localhost:8080/gateway/movies?query=${encodeURIComponent(query)}`,
+                    {
+                        method: "GET",
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error("Request failed");
+                }
+
+                const data = await response.text();
+
+                message.textContent = "Server response: " + data;
+
+            } catch (error) {
+                message.textContent = "Error: " + error.message;
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -3,6 +3,7 @@ package pt.project.microservice;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import pt.project.microservice.db.DatabaseManager;
 import pt.project.microservice.model.Movie;
 import pt.project.microservice.model.MovieDTO;
 
@@ -12,10 +13,13 @@ import java.util.List;
 @Service
 public class MovieService {
 
+    private final DatabaseManager databaseManager;
     private final RestTemplate restTemplate;
 
-    public MovieService(RestTemplate restTemplate) {
+    public MovieService(DatabaseManager databaseManager, RestTemplate restTemplate) {
+        this.databaseManager = databaseManager;
         this.restTemplate = restTemplate;
+
     }
 
     public MovieDTO search(String query) {
@@ -30,9 +34,7 @@ public class MovieService {
     }
 
     private Movie findMovie(String query) {
-
-        //mock
-        return new Movie(1, "Inception", "Dream movie");
+        return databaseManager.getMovieByTitle(query.toLowerCase());
     }
 
     private List<Integer> requestSuggestions(Movie movie) {
@@ -51,21 +53,6 @@ public class MovieService {
     }
 
     private List<Movie> findMoviesByIds(List<Integer> ids) {
-
-        List<Movie> movies = new ArrayList<>();
-
-        for (Integer id : ids) {
-
-            //mock
-            movies.add(
-                    new Movie(
-                            id,
-                            "Suggested Movie " + id,
-                            "Description"
-                    )
-            );
-        }
-
-        return movies;
+        return databaseManager.getMoviesByIds(ids);
     }
 }

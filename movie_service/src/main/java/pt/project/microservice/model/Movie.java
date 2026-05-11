@@ -1,15 +1,21 @@
 package pt.project.microservice.model;
 
+import java.util.List;
+
 public class Movie {
 
     private int id;
     private String title;
     private String description;
+    private List<String> genres;
+    private String director;
 
-    public Movie(int id, String title, String description) {
+    public Movie(int id, String title, String description,  List<String> genres, String director) {
         this.id = id;
         this.title = title;
         this.description = description;
+        this.genres = genres;
+        this.director = director;
     }
 
     public int getId() {
@@ -34,5 +40,21 @@ public class Movie {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public List<String> getGenres() {
+        return genres;
+    }
+
+    public void setGenres(List<String> genres) {
+        this.genres = genres;
+    }
+
+    public String getDirector() {
+        return director;
+    }
+
+    public void setDirector(String director) {
+        this.director = director;
     }
 }

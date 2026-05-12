@@ -9,13 +9,15 @@ public class Movie {
     private String description;
     private List<String> genres;
     private String director;
+    private int watchCount;
 
-    public Movie(int id, String title, String description,  List<String> genres, String director) {
+    public Movie(int id, String title, String description,  List<String> genres, String director, int watchCount) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.genres = genres;
         this.director = director;
+        this.watchCount = watchCount;
     }
 
     public int getId() {
@@ -56,5 +58,13 @@ public class Movie {
 
     public void setDirector(String director) {
         this.director = director;
+    }
+
+    public int getWatchCount() {
+        return watchCount;
+    }
+
+    public void setWatchCount(int watchCount) {
+        this.watchCount = watchCount;
     }
 }

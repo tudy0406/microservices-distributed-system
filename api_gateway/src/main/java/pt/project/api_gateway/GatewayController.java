@@ -1,6 +1,6 @@
 package pt.project.api_gateway;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "http://127.0.0.1:5500")
@@ -14,9 +14,15 @@ public class GatewayController {
         this.service = service;
     }
 
-    @GetMapping("/movies")
-    public String query(@RequestParam String query) {
-        //return service.search(query);
-        return "ok";
+    @GetMapping("/search")
+    public ResponseEntity<String> query(@RequestParam String query) {
+        String response = service.search(query);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/watch")
+    public ResponseEntity<Void> watch(@RequestParam int movieId) {
+        service.addWatched(movieId);
+        return ResponseEntity.noContent().build();
     }
 }

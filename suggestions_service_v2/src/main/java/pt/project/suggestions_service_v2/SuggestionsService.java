@@ -2,6 +2,7 @@ package pt.project.suggestions_service_v2;
 
 import jdk.jshell.SourceCodeAnalysis;
 import org.springframework.stereotype.Service;
+import pt.project.suggestions_service_v2.db.DatabaseManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,26 +10,35 @@ import java.util.List;
 @Service
 public class SuggestionsService {
 
-    public SuggestionsService() {}
+    private final DatabaseManager databaseManager;
+
+    public SuggestionsService(DatabaseManager databaseManager) {
+        this.databaseManager = databaseManager;
+    }
 
     public List<Integer> searchSuggestions(int id){
-        Movie movie = this.getMovie();
+        Movie movie = this.getMovie(id);
+        if(movie == null){
+            return new ArrayList<>();
+        }
         List<Integer> suggestions = this.getSuggestions(movie);
         return suggestions;
     }
 
-    private Movie getMovie(){
-        //mock
-        return new Movie(1, "Inception", "Dream Movie");
+    private Movie getMovie(int id){
+        return databaseManager.getMovieById(id);
     }
 
     private List<Integer> getSuggestions(Movie movie){
+        List<Integer> genres = movie.getGenreIds();
+        int directorId = movie.getDirectorId();
+        int requestedMovieId = movie.getId();
         List<Integer> suggestions = new ArrayList<>();
 
-        //mock
-        suggestions.add(2);
-        suggestions.add(3);
-        suggestions.add(4);
+        suggestions.addAll(databaseManager.getSuggestions("genres", genres, requestedMovieId));
+        suggestions.addAll(databaseManager.getSuggestions("director", List.of(directorId), requestedMovieId));
+
         return suggestions;
+
     }
 }

@@ -1,14 +1,18 @@
 package pt.project.suggestions_service_v2;
 
-public class Movie {
-    int id;
-    String title;
-    String description;
+import java.util.List;
 
-    public Movie(int id, String title, String description) {
+public class Movie {
+    private int id;
+    private List<Integer> genreIds;
+    private int directorId;
+    private int watchCount;
+
+    public Movie(int id, List<Integer> genreIds, int directorId, int watchCount) {
         this.id = id;
-        this.title = title;
-        this.description = description;
+        this.genreIds = genreIds;
+        this.directorId = directorId;
+        this.watchCount = watchCount;
     }
 
     public int getId() {
@@ -19,19 +23,26 @@ public class Movie {
         this.id = id;
     }
 
-    public String getTitle() {
-        return title;
+    public List<Integer> getGenreIds() {
+        return genreIds;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setGenres(List<Integer> genres) {
+        this.genreIds = genres;
     }
 
-    public String getDescription() {
-        return description;
+    public Integer getDirectorId() {
+        return directorId;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setDirector(Integer directorId) {
+        this.directorId = directorId;
+    }
+
+    public int getWatchCount() {
+        return watchCount;
+    }
+    public void setWatchCount(int watchCount) {
+        this.watchCount = watchCount;
     }
 }

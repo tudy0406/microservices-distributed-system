@@ -1,5 +1,6 @@
 package pt.project.microservice;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -15,12 +16,11 @@ import java.util.List;
 public class MovieService {
 
     private final DatabaseManager databaseManager;
-    private final RestTemplate restTemplate;
+    private final SuggestionClient suggestionClient;
 
-    public MovieService(DatabaseManager databaseManager, RestTemplate restTemplate) {
+    public MovieService(DatabaseManager databaseManager, SuggestionClient suggestionClient) {
         this.databaseManager = databaseManager;
-        this.restTemplate = restTemplate;
-
+        this.suggestionClient = suggestionClient;
     }
 
     public MovieDTO search(String query) {
@@ -32,7 +32,7 @@ public class MovieService {
             movieDTO.setSuggestions(this.findTopWatchedMovies());
             return movieDTO;
         }
-        List<Integer> ids = this.requestSuggestions(movieDTO.getRequestedMovie().getFirst().getId());
+        List<Integer> ids = suggestionClient.requestSuggestions(movieDTO.getRequestedMovie().getFirst().getId());
 
         List<Movie> suggestedMovies = this.findMoviesByIds(ids);
 
@@ -51,24 +51,6 @@ public class MovieService {
 
     private List<Movie> findMovie(String query) {
         return databaseManager.getMovieByTitle(query.toLowerCase());
-    }
-
-    private List<Integer> requestSuggestions(int requestedMovieId) {
-
-        String url = UriComponentsBuilder
-                .fromUriString("http://localhost:8084/suggestions/search")
-                .queryParam("movieId", requestedMovieId)
-                .toUriString();
-
-        Integer[] response = restTemplate.getForObject(
-                url,
-                Integer[].class
-        );
-
-        if(response == null || response.length == 0) {
-            return new ArrayList<>();
-        }
-        return Arrays.asList(response);
     }
 
     private List<Movie> findMoviesByIds(List<Integer> ids) {

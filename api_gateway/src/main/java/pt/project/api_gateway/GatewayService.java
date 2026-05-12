@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+
 @Service
 public class GatewayService {
 
@@ -15,11 +17,12 @@ public class GatewayService {
 
     public String search(String query) {
 
-        String url = UriComponentsBuilder
+        URI uri = UriComponentsBuilder
                 .fromUriString("http://localhost:8082/movie/search")
                 .queryParam("query", query)
-                .toUriString();
-        return restTemplate.getForObject(url, String.class);
+                .build()
+                .toUri();
+        return restTemplate.getForObject(uri, String.class);
     }
 
     public void addWatched(int movieId) {

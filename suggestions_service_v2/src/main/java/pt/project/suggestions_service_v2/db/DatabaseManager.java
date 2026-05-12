@@ -70,11 +70,11 @@ public class DatabaseManager {
         if ("director".equals(attribute)) {
 
             sql = """
-                SELECT id, watch_count
+                SELECT DISTINCT id, watch_count
                 FROM movies
                 WHERE director_id = ? AND id != ?
-                ORDER BY watch_count DESC;
-                LIMIT 5
+                ORDER BY watch_count DESC
+                LIMIT 5;
               """;
 
         } else if ("genres".equals(attribute)) {
@@ -90,8 +90,8 @@ public class DatabaseManager {
                 JOIN movies_genres mg
                     ON mg.movie_id = m.id
                 WHERE mg.genre_id IN (%s) AND m.id != ?
-                ORDER BY m.watch_count DESC;
-                LIMIT 5
+                ORDER BY m.watch_count DESC
+                LIMIT 5;
               """.formatted(placeholders);
 
         } else {

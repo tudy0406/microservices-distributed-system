@@ -20,4 +20,11 @@ public class MovieController {
         MovieDTO response = service.search(query);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/watch")
+    public ResponseEntity<Void> watchMovie(@RequestParam int movieId){
+        service.addWatched(movieId);
+        return ResponseEntity.ok().build();
+    }
+
 }

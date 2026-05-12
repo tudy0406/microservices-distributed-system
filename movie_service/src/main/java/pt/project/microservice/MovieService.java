@@ -8,6 +8,7 @@ import pt.project.microservice.model.Movie;
 import pt.project.microservice.model.MovieDTO;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -27,21 +28,36 @@ public class MovieService {
         MovieDTO movieDTO = new MovieDTO();
 
         movieDTO.setRequestedMovie(this.findMovie(query));
-        List<Integer> ids = this.requestSuggestions(movieDTO.getRequestedMovie());
-        movieDTO.setSuggestions(this.findMoviesByIds(ids));
+        if(movieDTO.getRequestedMovie().isEmpty()) {
+            movieDTO.setSuggestions(this.findTopWatchedMovies());
+            return movieDTO;
+        }
+        List<Integer> ids = this.requestSuggestions(movieDTO.getRequestedMovie().getFirst().getId());
+
+        List<Movie> suggestedMovies = this.findMoviesByIds(ids);
+
+        if(suggestedMovies.isEmpty()) {
+            movieDTO.setSuggestions(this.findTopWatchedMovies());
+        }else{
+            movieDTO.setSuggestions(suggestedMovies);
+        }
 
         return movieDTO;
     }
 
-    private Movie findMovie(String query) {
+    public void addWatched(int movieId){
+        databaseManager.addWatchedMovie(movieId);
+    }
+
+    private List<Movie> findMovie(String query) {
         return databaseManager.getMovieByTitle(query.toLowerCase());
     }
 
-    private List<Integer> requestSuggestions(Movie movie) {
+    private List<Integer> requestSuggestions(int requestedMovieId) {
 
         String url = UriComponentsBuilder
                 .fromUriString("http://localhost:8084/suggestions/search")
-                .queryParam("movieId", movie.getId())
+                .queryParam("movieId", requestedMovieId)
                 .toUriString();
 
         Integer[] response = restTemplate.getForObject(
@@ -49,10 +65,17 @@ public class MovieService {
                 Integer[].class
         );
 
-        return List.of(response);
+        if(response == null || response.length == 0) {
+            return new ArrayList<>();
+        }
+        return Arrays.asList(response);
     }
 
     private List<Movie> findMoviesByIds(List<Integer> ids) {
         return databaseManager.getMoviesByIds(ids);
+    }
+
+    private List<Movie> findTopWatchedMovies() {
+        return databaseManager.getTopWatchedMovies();
     }
 }

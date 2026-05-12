@@ -25,34 +25,42 @@ public class DatabaseManager {
         }
     }
 
-    public Movie getMovieByTitle(String title) {
+    public List<Movie> getMovieByTitle(String title) {
         String sql = """
-                SELECT m.id, m.title, m.description, g.name AS genre, d.name AS director_name FROM movies_fts f
+                SELECT m.id, m.title, m.description, m.watch_count, g.name AS genre, d.name AS director_name FROM movies_fts f
                 JOIN movies m ON m.id = f.rowid
                 JOIN directors d on m.director_id = d.id
                 JOIN movies_genres mg ON m.id = mg.movie_id
                 JOIN genres g ON g.id = mg.genre_id
                 WHERE movies_fts MATCH ?;
                 """;
-
+        List<Movie> movies = new  ArrayList<>();
         try{
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setString(1, title);
+            statement.setString(1, "\"" + title + "\"*");
             ResultSet result = statement.executeQuery();
 
             Movie movie = null;
             List<String> genres = new ArrayList<>();
+            int currentMovieId = -1;
 
             while (result.next()) {
-                if (movie == null) {
+                if(movie == null || currentMovieId != result.getInt("id")){
+                    if(movie != null){
+                        movies.add(movie);
+                    }
+                    currentMovieId = result.getInt("id");
 
+                    genres = new ArrayList<>();
                     movie = new Movie(
                             result.getInt("id"),
                             result.getString("title"),
                             result.getString("description"),
                             genres,
-                            result.getString("director_name")
+                            result.getString("director_name"),
+                            result.getInt("watch_count")
                     );
+
                 }
 
                 String genre = result.getString("genre");
@@ -61,10 +69,13 @@ public class DatabaseManager {
                     genres.add(genre);
                 }
             }
-            return movie;
+            if (movie != null) {
+                movies.add(movie);
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Query failed", e);
         }
+        return movies;
     }
 
     public List<Movie> getMoviesByIds(List<Integer> ids) {
@@ -91,6 +102,7 @@ public class DatabaseManager {
             m.id,
             m.title,
             m.description,
+            m.watch_count,
             g.name AS genre,
             d.name AS director_name
         FROM movies m
@@ -127,7 +139,8 @@ public class DatabaseManager {
                             result.getString("title"),
                             result.getString("description"),
                             genres,
-                            result.getString("director_name")
+                            result.getString("director_name"),
+                            result.getInt("watch_count")
                     );
 
                     movies.add(currentMovie);
@@ -150,4 +163,79 @@ public class DatabaseManager {
 
         return movies;
     }
+
+    public List<Movie> getTopWatchedMovies(){
+        String sql = """
+                SELECT DISTINCT m.id, m.title, m.description, m.watch_count, g.name AS genre, d.name AS director_name FROM movies_fts f
+                JOIN movies m ON m.id = f.rowid
+                JOIN directors d on m.director_id = d.id
+                JOIN movies_genres mg ON m.id = mg.movie_id
+                JOIN genres g ON g.id = mg.genre_id
+                ORDER BY watch_count DESC;
+                """;
+        List<Movie> movies = new  ArrayList<>();
+        try{
+            PreparedStatement statement = connection.prepareStatement(sql);
+            ResultSet result = statement.executeQuery();
+
+            Movie movie = null;
+            List<String> genres = new ArrayList<>();
+            int currentMovieId = -1;
+            int nbOfMovies = 0;
+            while (result.next()) {
+                if(movie == null || currentMovieId != result.getInt("id")){
+
+                    if(nbOfMovies >= 5){
+                        break;
+                    }
+                    nbOfMovies++;
+
+                    if(movie != null){
+                        movies.add(movie);
+                    }
+                    currentMovieId = result.getInt("id");
+
+                    genres = new ArrayList<>();
+                    movie = new Movie(
+                            result.getInt("id"),
+                            result.getString("title"),
+                            result.getString("description"),
+                            genres,
+                            result.getString("director_name"),
+                            result.getInt("watch_count")
+                    );
+
+
+                }
+
+                String genre = result.getString("genre");
+
+                if (genre != null) {
+                    genres.add(genre);
+                }
+            }
+            if (movie != null) {
+                movies.add(movie);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Query failed", e);
+        }
+        return movies;
+    }
+
+    public void addWatchedMovie(int movieId){
+        String sql = """
+                    UPDATE movies SET watch_count = watch_count + 1 WHERE id = ?;
+                """;
+
+        try{
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setInt(1, movieId);
+            stmt.execute();
+        }catch(SQLException e){
+            System.out.println("addWatchedMovie SQLException");
+        }
+    }
+
 }

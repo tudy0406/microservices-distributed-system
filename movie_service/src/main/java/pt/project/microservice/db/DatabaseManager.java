@@ -26,6 +26,14 @@ public class DatabaseManager {
     }
 
     public List<Movie> getMovieByTitle(String title) {
+        System.out.println("Getting movie by title: " + title);
+        String[] tokens = title.trim().split("\\s+");
+        StringBuilder query = new StringBuilder();
+        for (String token : tokens) {
+            query.append(token).append("* ");
+        }
+
+
         String sql = """
                 SELECT m.id, m.title, m.description, m.watch_count, g.name AS genre, d.name AS director_name FROM movies_fts f
                 JOIN movies m ON m.id = f.rowid
@@ -37,7 +45,7 @@ public class DatabaseManager {
         List<Movie> movies = new  ArrayList<>();
         try{
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setString(1, "\"" + title + "\"*");
+            statement.setString(1, query.toString().trim());
             ResultSet result = statement.executeQuery();
 
             Movie movie = null;

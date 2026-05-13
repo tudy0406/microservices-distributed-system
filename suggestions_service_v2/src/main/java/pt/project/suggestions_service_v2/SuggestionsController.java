@@ -22,25 +22,31 @@ public class SuggestionsController {
     @GetMapping("/search")
     public ResponseEntity<List<Integer>> getSuggestions(@RequestParam("movieId") int id){
         String chaos = System.getenv("CHAOS_MODE");
-        try{
+        try {
+
             if ("true".equalsIgnoreCase(chaos)) {
 
                 Random random = new Random();
 
-                // Random latency
-                int delay = 3000 + random.nextInt(7000);
+                int scenario = random.nextInt(2);
 
-                Thread.sleep(delay);
+                // Scenario 0 -> slow response
+                if (scenario == 0) {
+                    System.out.println("Latency Spike");
+                    int delay = 3000 + random.nextInt(7000);
 
-                // Random failure
-                if (random.nextBoolean()) {
-                    throw new ResponseStatusException(
-                            HttpStatus.SERVICE_UNAVAILABLE,
-                            "Chaos mode failure"
-                    );
+                    Thread.sleep(delay);
+                }
+
+                // Scenario 1 -> immediate 503
+                else {
+                    System.out.println("HTTP 503");
+                    throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Chaos mode failure");
                 }
             }
-        }catch(InterruptedException e){
+
+        } catch (InterruptedException e) {
+
             Thread.currentThread().interrupt();
         }
 

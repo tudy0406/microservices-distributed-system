@@ -1,46 +1,279 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Request App</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Search</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        #sendBtn {
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .section-title {
+            margin-top: 40px;
+            margin-bottom: 15px;
+        }
+
+        .movies-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .movie-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .movie-info {
+            flex: 1;
+        }
+
+        .movie-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .movie-description {
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        .movie-extra {
+            margin-bottom: 5px;
+        }
+
+        .watch-btn {
+            margin-left: 20px;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            background-color: #90ee90;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .watch-btn:hover {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
 </head>
+
 <body>
 
-    <input type="text" id="userInput" placeholder="Enter something">
-    <button id="sendBtn">Send</button>
+    <h1>Movie Search</h1>
+
+    <div class="search-container">
+        <input
+            type="text"
+            id="userInput"
+            placeholder="Enter movie name"
+        />
+
+        <button id="sendBtn">Search</button>
+    </div>
+
+    <div>
+        <h2 class="section-title">Requested Movies</h2>
+        <div id="requestedMovies" class="movies-container"></div>
+    </div>
+
+    <div>
+        <h2 class="section-title">Suggested/Trending Movies</h2>
+        <div id="suggestedMovies" class="movies-container"></div>
+    </div>
 
     <p id="message"></p>
 
     <script>
         const button = document.getElementById("sendBtn");
         const input = document.getElementById("userInput");
+
+        const requestedContainer =
+            document.getElementById("requestedMovies");
+
+        const suggestedContainer =
+            document.getElementById("suggestedMovies");
+
         const message = document.getElementById("message");
 
         button.addEventListener("click", async () => {
-            const query = input.value;
+
+            const query = input.value.trim();
+
+            if (!query) {
+                message.textContent = "Please enter a movie title.";
+                return;
+            }
 
             try {
 
                 const response = await fetch(
-                    `http://localhost:8080/gateway/movies?query=${encodeURIComponent(query)}`,
+                    `http://localhost:8080/gateway/search?query=${encodeURIComponent(query)}`,
                     {
-                        method: "GET",
+                        method: "GET"
                     }
                 );
 
                 if (!response.ok) {
-                    throw new Error("Request failed");
+                    throw new Error("Search request failed");
                 }
 
-                const data = await response.text();
+                /*
+                    Expected backend response example:
 
-                message.textContent = "Server response: " + data;
+                    {
+                        "requestedMovies": [
+                            {
+                                "id": 1,
+                                "title": "Inception",
+                                "description": "...",
+                                "genres": ["Sci-Fi", "Action"],
+                                "director": "Christopher Nolan"
+                            }
+                        ],
+                        "suggestedMovies": [
+                            ...
+                        ]
+                    }
+                */
+
+                const data = await response.json();
+
+                requestedContainer.innerHTML = "";
+                suggestedContainer.innerHTML = "";
+
+                renderMovies(
+                    data.requestedMovie,
+                    requestedContainer
+                );
+
+                renderMovies(
+                    data.suggestions,
+                    suggestedContainer
+                );
+
+                message.textContent = "";
 
             } catch (error) {
                 message.textContent = "Error: " + error.message;
             }
         });
+
+        function renderMovies(movies, container) {
+
+            if (!movies || movies.length === 0) {
+
+                container.innerHTML = "<p>No movies found.</p>";
+                return;
+            }
+
+            movies.forEach(movie => {
+
+                const card = document.createElement("div");
+                card.className = "movie-card";
+
+                const movieInfo = document.createElement("div");
+                movieInfo.className = "movie-info";
+
+                movieInfo.innerHTML = `
+                    <div class="movie-title">${movie.title}</div>
+
+                    <div class="movie-description">
+                        ${movie.description}
+                    </div>
+
+                    <div class="movie-extra">
+                        <strong>Genres:</strong>
+                        ${Array.isArray(movie.genres)
+                            ? movie.genres.join(", ")
+                            : movie.genres}
+                    </div>
+
+                    <div class="movie-extra">
+                        <strong>Director:</strong>
+                        ${movie.director}
+                    </div>
+                `;
+
+                const watchButton = document.createElement("button");
+
+                watchButton.className = "watch-btn";
+                watchButton.textContent = "WATCH";
+
+                watchButton.addEventListener("click", async () => {
+
+                    try {
+
+                        const response = await fetch(
+                            `http://localhost:8080/gateway/watch?movieId=${movie.id}`,
+                            {
+                                method: "POST"
+                            }
+                        );
+
+                        if (!response.ok) {
+                            throw new Error("Failed to mark movie as watched");
+                        }
+
+                        alert(`Movie "${movie.title}" marked as watched!`);
+
+                    } catch (error) {
+
+                        alert(error.message);
+                    }
+                });
+
+                card.appendChild(movieInfo);
+                card.appendChild(watchButton);
+
+                container.appendChild(card);
+            });
+        }
     </script>
 
 </body>

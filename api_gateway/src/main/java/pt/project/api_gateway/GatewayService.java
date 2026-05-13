@@ -30,6 +30,6 @@ public class GatewayService {
                 .fromUriString("http://localhost:8082/movie/watch")
                 .queryParam("movieId", movieId)
                 .toUriString();
-        restTemplate.getForObject(url, null);
+        restTemplate.postForLocation(url, Void.class);
     }
 }

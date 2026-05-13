@@ -119,7 +119,8 @@ public class DatabaseManager {
         LEFT JOIN genres g ON g.id = mg.genre_id
         WHERE m.id IN (
         """ + placeholders + """
-        );
+        )
+        ORDER BY m.watch_count DESC;
         """;
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {

@@ -29,7 +29,7 @@ public class SuggestionClient {
                 url,
                 Integer[].class
         );
-
+        System.out.println("SUGGESTION SERVICE SUCCESS");
         if(response == null || response.length == 0) {
             return new ArrayList<>();
         }
